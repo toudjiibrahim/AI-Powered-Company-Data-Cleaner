@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      body {
+        display: flex;
+        justify-content: center;  /* Center horizontally */
+        align-items: center;      /* Center vertically */
+        height: 100vh;            /* Make sure the body takes up the full height */
+        margin: 0;
+        font-family: Arial, sans-serif;
+        flex-direction: column;   /* Stack elements vertically */
+      }
+      #loading {
+        display: flex;             /* Use flexbox */
+        flex-direction: column;    /* Arrange child elements vertically */
+        align-items: center;       /* Center child elements horizontally */
+        justify-content: center;   /* Center child elements vertically */
+      }
+      #spinner {
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #3498db;
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        animation: spin 2s linear infinite;
+        margin-bottom: 20px;  /* Space between spinner and text */
+      }
+      #lastUpdated {
+        font-size: 12px;
+      }
+      #log {
+        width: 80%;
+        height: 150px;
+        overflow-y: scroll;
+        /* border: 1px solid #ccc; */
+        padding: 10px;
+        font-family: monospace;
+        /* background-color: #f9f9f9; */
+        margin-top: 20px;
+      }
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="loading">
+      <div id="spinner"></div>
+      <div id="progressText">Processing...</div> <!-- Placeholder for dynamic progress -->
+      <p id="lastUpdated">-</p>
+    </div>
+    
+    <p id="log"></p>  <!-- Log container to show updates -->
+
+    <script>
+      // Periodically check server status
+      setInterval(function() {
+        google.script.run.withSuccessHandler(updateUI).getProgressStatus();
+      }, 2000); // check every 2 seconds
+
+      function updateUI(response) {
+        var isScriptRunning = (response.isScriptRunning === 'true');
+        var progressState = response.progressState || 'No state information';
+        var lastUpdated = response.lastUpdated ? "Last run : "+response.lastUpdated : "-";
+        progressState = progressState.replace(/\n/g, "<br/>");
+        // var progressState = response.progressState || '';
+
+        // log container
+        var logContainer = document.getElementById('log');
+        logContainer.innerHTML = progressState;
+        logContainer.scrollTop = logContainer.scrollHeight;  // Scroll to the bottom
+
+        // spinner and related objects
+        const spinner = document.getElementById("spinner");
+        const progress_text = document.getElementById("progressText")
+        const last_updated_text = document.getElementById("lastUpdated")
+
+        // Check if the task is complete
+        if (isScriptRunning) {
+          // Stop the spinner animation
+          spinner.style.animation = "spin 2s linear infinite";
+          spinner.style.border = "4px solid #f3f3f3";
+          spinner.style.borderTopColor = "#3498db";  // Change color
+          progress_text.textContent = "Processing..."
+        }else {
+          // Stop the spinner animation
+          spinner.style.animation = "none";
+          spinner.style.borderTopColor = "#28a745";  // Change to green
+          spinner.style.border = "4px solid #28a745";
+          progress_text.textContent = "Completed!"
+        }
+
+        last_updated_text.textContent = lastUpdated
+
+      }
+
+    </script>
+  </body>
+</html>
